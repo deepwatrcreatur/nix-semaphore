@@ -3,6 +3,29 @@
 let
   cfg = config.services.semaphore;
 
+  # Build semaphore package inline so it doesn't require overlay
+  defaultPackage = pkgs.stdenvNoCC.mkDerivation rec {
+    pname = "semaphore";
+    version = "2.17.26";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/semaphoreui/semaphore/releases/download/v${version}/semaphore_${version}_linux_amd64.tar.gz";
+      sha256 = "1frnnghrh1bcxyis4w34jsil2g4apqfx51psyc0ks8a9mcvw22ha";
+    };
+
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+
+    sourceRoot = ".";
+    dontBuild = true;
+
+    installPhase = ''
+      mkdir -p $out/bin
+      install -m755 semaphore $out/bin/semaphore
+      wrapProgram $out/bin/semaphore \
+        --prefix PATH : ${lib.makeBinPath [ pkgs.ansible pkgs.git pkgs.openssh ]}
+    '';
+  };
+
   # Generate config.json
   configFile = pkgs.writeText "semaphore-config.json" (builtins.toJSON {
     bolt = {
@@ -25,7 +48,11 @@ in {
   options.services.semaphore = {
     enable = lib.mkEnableOption "Semaphore Ansible UI";
 
-    package = lib.mkPackageOption pkgs "semaphore" { };
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = defaultPackage;
+      description = "The Semaphore package to use.";
+    };
 
     user = lib.mkOption {
       type = lib.types.str;
