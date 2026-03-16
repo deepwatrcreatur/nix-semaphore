@@ -42,6 +42,8 @@ let
     slack_alert = cfg.slackAlert;
     concurrency_mode = cfg.concurrencyMode;
     max_parallel_tasks = cfg.maxParallelTasks;
+    # Allow cookies over HTTP (not just HTTPS)
+    cookie_secure = false;
   };
 
   baseConfigFile = pkgs.writeText "semaphore-config-base.json" (builtins.toJSON baseConfig);
