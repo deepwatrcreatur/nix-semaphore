@@ -1,0 +1,56 @@
+---
+# Install Determinate Nix on target hosts
+# Usage in Semaphore:
+#   1. Add SSH key to Key Store
+#   2. Create Inventory with target hosts (static or dynamic)
+#   3. Create Task Template pointing to this playbook
+#
+# Example static inventory:
+#   [new_hosts]
+#   192.168.1.100 ansible_user=root
+#   192.168.1.101 ansible_user=ubuntu ansible_become=yes
+
+- name: Install Determinate Nix
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # Set to false to skip reboot prompt
+    prompt_for_reboot: false
+
+  tasks:
+    - name: Check if Nix is already installed
+      stat:
+        path: /nix
+      register: nix_installed
+
+    - name: Install Determinate Nix
+      when: not nix_installed.stat.exists
+      block:
+        - name: Install curl if not present
+          package:
+            name: curl
+            state: present
+
+        - name: Run Determinate Nix installer
+          shell: |
+            curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
+          args:
+            creates: /nix
+          environment:
+            NIX_INSTALLER_NO_CONFIRM: "true"
+
+        - name: Verify Nix installation
+          shell: /nix/var/nix/profiles/default/bin/nix --version
+          register: nix_version
+          changed_when: false
+
+        - name: Display Nix version
+          debug:
+            msg: "Installed: {{ nix_version.stdout }}"
+
+    - name: Nix already installed
+      when: nix_installed.stat.exists
+      debug:
+        msg: "Nix is already installed at /nix"
