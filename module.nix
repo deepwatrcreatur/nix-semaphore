@@ -26,8 +26,8 @@ let
     '';
   };
 
-  # Generate config.json
-  configFile = pkgs.writeText "semaphore-config.json" (builtins.toJSON {
+  # Base config (cookie keys are added at runtime)
+  baseConfig = {
     bolt = {
       host = "${cfg.dataDir}/database.boltdb";
     };
@@ -42,7 +42,9 @@ let
     slack_alert = cfg.slackAlert;
     concurrency_mode = cfg.concurrencyMode;
     max_parallel_tasks = cfg.maxParallelTasks;
-  });
+  };
+
+  baseConfigFile = pkgs.writeText "semaphore-config-base.json" (builtins.toJSON baseConfig);
 
 in {
   options.services.semaphore = {
@@ -200,8 +202,26 @@ in {
         Group = cfg.group;
         WorkingDirectory = cfg.dataDir;
         ExecStartPre = pkgs.writeShellScript "semaphore-setup" ''
-          # Copy config if not exists or update it
-          cp -f ${configFile} ${cfg.dataDir}/config.json
+          # Generate cookie keys if they don't exist
+          SECRETS_FILE="${cfg.dataDir}/.secrets"
+          if [ ! -f "$SECRETS_FILE" ]; then
+            echo "Generating cookie encryption keys..."
+            COOKIE_HASH=$(${pkgs.openssl}/bin/openssl rand -hex 32)
+            COOKIE_ENCRYPTION=$(${pkgs.openssl}/bin/openssl rand -hex 16)
+            echo "COOKIE_HASH=$COOKIE_HASH" > "$SECRETS_FILE"
+            echo "COOKIE_ENCRYPTION=$COOKIE_ENCRYPTION" >> "$SECRETS_FILE"
+            chmod 600 "$SECRETS_FILE"
+          fi
+
+          # Load secrets
+          source "$SECRETS_FILE"
+
+          # Generate config with cookie keys
+          ${pkgs.jq}/bin/jq \
+            --arg cookie_hash "$COOKIE_HASH" \
+            --arg cookie_encryption "$COOKIE_ENCRYPTION" \
+            '. + {cookie_hash: $cookie_hash, cookie_encryption: $cookie_encryption}' \
+            ${baseConfigFile} > ${cfg.dataDir}/config.json
           chmod 600 ${cfg.dataDir}/config.json
 
           # Initialize database if needed
