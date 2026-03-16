@@ -13,7 +13,7 @@ stdenvNoCC.mkDerivation rec {
 
   src = fetchurl {
     url = "https://github.com/semaphoreui/semaphore/releases/download/v${version}/semaphore_${version}_linux_amd64.tar.gz";
-    sha256 = "1frnnghrh1bcxyis4w34jsil2g4apqfx51psyc0ks8a9mcvw22ha";
+    sha256 = "sha256-kdq7yaFR8axKrWxcfCKkj02vLkN1C6tOioq6vFcrlIc=";
   };
 
   sourceRoot = ".";
