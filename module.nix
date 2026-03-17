@@ -28,10 +28,10 @@ let
 
   # Base config (cookie keys are added at runtime)
   baseConfig = {
-    bolt = {
-      host = "${cfg.dataDir}/database.boltdb";
+    sqlite = {
+      host = "${cfg.dataDir}/database.sqlite";
     };
-    dialect = "bolt";
+    dialect = "sqlite";
     tmp_path = "${cfg.dataDir}/tmp";
     playbook_path = cfg.playbookPath;
     web_host = cfg.host;
@@ -227,7 +227,7 @@ in {
           chmod 600 ${cfg.dataDir}/config.json
 
           # Initialize database if needed
-          if [ ! -f ${cfg.dataDir}/database.boltdb ]; then
+          if [ ! -f ${cfg.dataDir}/database.sqlite ]; then
             echo "Initializing Semaphore database..."
             ${cfg.package}/bin/semaphore user add \
               --config ${cfg.dataDir}/config.json \
