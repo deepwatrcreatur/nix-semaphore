@@ -2,7 +2,7 @@
 # Rebuild NixOS hosts from flake
 # Usage: Create a Task Template with extra variables:
 #   flake_path: /path/to/flake (default: /etc/nixos)
-#   action: switch|boot|test (default: switch)
+#   rebuild_action: switch|boot|test (default: switch)
 
 - name: NixOS Rebuild
   hosts: all
@@ -11,7 +11,7 @@
 
   vars:
     flake_path: "/etc/nixos"
-    action: "switch"
+    rebuild_action: "switch"
 
   tasks:
     - name: Get hostname
@@ -21,7 +21,7 @@
 
     - name: Run nixos-rebuild
       command: >
-        nixos-rebuild {{ action }}
+        nixos-rebuild {{ rebuild_action }}
         --flake {{ flake_path }}#{{ hostname_result.stdout }}
       register: rebuild_result
 
