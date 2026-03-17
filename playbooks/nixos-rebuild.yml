@@ -6,7 +6,7 @@
 
 - name: NixOS Rebuild
   hosts: all
-  become: yes
+  become: no  # SSH as root directly instead of using sudo
   gather_facts: no
 
   vars:
