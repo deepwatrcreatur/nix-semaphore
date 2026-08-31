@@ -9,11 +9,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "semaphore";
-  version = "2.17.33";
+  version = "2.19.12";
 
   src = fetchurl {
     url = "https://github.com/semaphoreui/semaphore/releases/download/v${version}/semaphore_${version}_linux_amd64.tar.gz";
-    sha256 = "sha256-Cgxho5so6HJB9TWcSLARFryoUpZ1ByOrzgD4dULlnmw=";
+    sha256 = "sha256-Ho4oO8giGR4uoQEnmW41y8L3dXftixVHTGU3Ww4RBNI=";
   };
 
   sourceRoot = ".";
