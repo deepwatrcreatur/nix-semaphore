@@ -3,28 +3,9 @@
 let
   cfg = config.services.semaphore;
 
-  # Build semaphore package inline so it doesn't require overlay
-  defaultPackage = pkgs.stdenvNoCC.mkDerivation rec {
-    pname = "semaphore";
-    version = "2.17.26";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/semaphoreui/semaphore/releases/download/v${version}/semaphore_${version}_linux_amd64.tar.gz";
-      sha256 = "sha256-kdq7yaFR8axKrWxcfCKkj02vLkN1C6tOioq6vFcrlIc=";
-    };
-
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-
-    sourceRoot = ".";
-    dontBuild = true;
-
-    installPhase = ''
-      mkdir -p $out/bin
-      install -m755 semaphore $out/bin/semaphore
-      wrapProgram $out/bin/semaphore \
-        --prefix PATH : ${lib.makeBinPath [ pkgs.ansible pkgs.git pkgs.openssh ]}
-    '';
-  };
+  # INVARIANT: the module's default must be ./package.nix, the file the weekly
+  # nix-update workflow bumps. An inline copy here once lagged several releases.
+  defaultPackage = pkgs.callPackage ./package.nix { };
 
   # Base config (cookie keys are added at runtime)
   baseConfig = {
