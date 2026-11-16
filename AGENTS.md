@@ -4,6 +4,8 @@ NixOS module and package for [Semaphore](https://semaphoreui.com), a UI for
 Ansible, Terraform and OpenTofu. `playbooks/` holds example Ansible playbooks.
 
 - Package: `package.nix`; module: `module.nix`.
+- The package is x86_64-linux only (upstream amd64 binary), although the
+  flake lists aarch64-linux too.
 - Build and try it: `nix build .#semaphore`, then run `result/bin/semaphore`.
 - Updates: `.github/workflows/update-package.yml` runs `nix-update` weekly and
   opens a PR. By hand: `nix run nixpkgs#nix-update -- semaphore --flake --version=stable --use-github-releases`.
@@ -28,11 +30,12 @@ Summary (offline fallback):
   three lines above the code they protect; longer reasoning goes in `docs/`
   with a pointer (`# WHY: docs/x.md#heading`). Never narrate the next line.
 - **Before editing a file**, read its tags:
-  `rg -n '# (WHY|GOTCHA|INVARIANT|SECURITY|UPSTREAM|TODO)' <file>`.
+  `grep -nE '# (WHY|GOTCHA|INVARIANT|SECURITY|UPSTREAM|TODO)' <file>`.
   Fix or delete any tag your change makes untrue.
 - **Exported Nix functions** get RFC 145 doc comments (`/** ... */`).
-- **Validate before committing:** the narrowest `nix build` first, then
-  `nix flake check`; read all output. Run `bash -n`/`shellcheck` on shell
+- **Validate before committing:** build the narrowest affected output
+  first (when the flake has packages), then `nix flake check`; read all
+  output. Run `bash -n`/`shellcheck` on shell
   generated from Nix. Exit code 0 is not proof the change worked.
 - **Same change, same PR:** behaviour changes come with docs and a check.
 - **Never commit secrets**, and do not deploy to or change live hosts unless
