@@ -24,6 +24,29 @@
         }
       );
 
+      # INVARIANT: module users get the same package the updater bumps.
+      checks.x86_64-linux.module-default-package =
+        let
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          eval = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              self.nixosModules.default
+              {
+                boot.isContainer = true;
+                services.semaphore.enable = true;
+                system.stateVersion = "25.05";
+              }
+            ];
+          };
+          actual = eval.config.services.semaphore.package;
+          expected = self.packages.x86_64-linux.semaphore;
+        in
+        assert actual.outPath == expected.outPath;
+        pkgs.runCommand "module-default-package" { } ''
+          echo "module default package: ${actual.name}" > $out
+        '';
+
       overlays.default = final: prev: {
         semaphore = self.packages.${prev.system}.semaphore;
       };

@@ -9,9 +9,9 @@ Ansible, Terraform and OpenTofu. `playbooks/` holds example Ansible playbooks.
 - Build and try it: `nix build .#semaphore`, then run `result/bin/semaphore`.
 - Updates: `.github/workflows/update-package.yml` runs `nix-update` weekly and
   opens a PR. By hand: `nix run nixpkgs#nix-update -- semaphore --flake --version=stable --use-github-releases`.
-- **Known issue:** `module.nix` builds its own inline Semaphore package with
-  a separate `version` (2.17.26), which the updater does not touch, while
-  `package.nix` is newer. Until that is fixed, bump both when updating.
+- The module's default `package` is `pkgs.callPackage ./package.nix { }`, so
+  updating `package.nix` updates module users too. The `module-default-package`
+  check enforces this; do not reintroduce an inline package in `module.nix`.
 
 <!-- nix-agent-guides:core BEGIN (v3). Synced from deepwatrcreatur/nix-agent-guides templates/agents-core.md by scripts/sync-agents-core.sh. Edit it there, not here. -->
 ## Shared conventions
